@@ -3,19 +3,22 @@ import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../core/utils/constants.dart';
 import '../core/utils/helpers.dart';
-import '../data/models/sensor_data_model.dart';
 
 class BluetoothService extends GetxService {
   // Observables
-  final Rx<fbp.BluetoothDevice?> connectedDevice = Rx<fbp.BluetoothDevice?>(null);
+  final Rx<fbp.BluetoothDevice?> connectedDevice = Rx<fbp.BluetoothDevice?>(
+    null,
+  );
   final RxBool isScanning = false.obs;
   final RxBool isConnected = false.obs;
   final RxBool isConnecting = false.obs;
   final RxList<fbp.BluetoothDevice> devices = <fbp.BluetoothDevice>[].obs;
-  final Rx<fbp.BluetoothAdapterState> adapterState = fbp.BluetoothAdapterState.unknown.obs;
-  
+  final Rx<fbp.BluetoothAdapterState> adapterState =
+      fbp.BluetoothAdapterState.unknown.obs;
+
   // Characteristics for communication
   fbp.BluetoothCharacteristic? _writeCharacteristic;
+  // ignore: unused_field
   fbp.BluetoothCharacteristic? _notifyCharacteristic;
 
   Future<BluetoothService> init() async {
@@ -29,7 +32,9 @@ class BluetoothService extends GetxService {
     fbp.FlutterBluePlus.adapterState.listen((state) {
       adapterState.value = state;
       if (state == fbp.BluetoothAdapterState.off) {
-        Helpers.showWarning('Bluetooth tidak aktif. Silakan aktifkan Bluetooth.');
+        Helpers.showWarning(
+          'Bluetooth tidak aktif. Silakan aktifkan Bluetooth.',
+        );
       }
     });
 
@@ -41,25 +46,33 @@ class BluetoothService extends GetxService {
 
   // Request necessary permissions
   Future<bool> requestPermissions() async {
-    Map<Permission, PermissionStatus> statuses = await [
-      Permission.bluetoothScan,
-      Permission.bluetoothConnect,
-      Permission.location,
-    ].request();
+    try {
+      Map<Permission, PermissionStatus> statuses = await [
+        Permission.bluetoothScan,
+        Permission.bluetoothConnect,
+        Permission.location,
+      ].request();
 
-    bool allGranted = statuses.values.every((status) => status.isGranted);
-    
-    if (!allGranted) {
-      Helpers.showError('Izin Bluetooth diperlukan untuk menggunakan fitur ini');
+      bool allGranted = statuses.values.every((status) => status.isGranted);
+
+      if (!allGranted) {
+        print('❌ Bluetooth permissions not granted');
+        // Don't show snackbar during initServices - show during app runtime
+        return false;
+      }
+
+      print('✅ Bluetooth permissions granted');
+      return true;
+    } catch (e) {
+      print('❌ Permission request error: $e');
       return false;
     }
-
-    return true;
   }
 
   // Check if Bluetooth is enabled
   Future<bool> isBluetoothEnabled() async {
-    return await fbp.FlutterBluePlus.adapterState.first == fbp.BluetoothAdapterState.on;
+    return await fbp.FlutterBluePlus.adapterState.first ==
+        fbp.BluetoothAdapterState.on;
   }
 
   // Turn on Bluetooth (Android only)
@@ -74,7 +87,9 @@ class BluetoothService extends GetxService {
   }
 
   // Start scanning for devices
-  Future<void> startScan({Duration timeout = const Duration(seconds: 15)}) async {
+  Future<void> startScan({
+    Duration timeout = const Duration(seconds: 15),
+  }) async {
     try {
       if (!(await isBluetoothEnabled())) {
         Helpers.showWarning('Bluetooth tidak aktif');
@@ -96,8 +111,7 @@ class BluetoothService extends GetxService {
           // Filter only SENTRY HELMET devices
           if (result.device.platformName.isNotEmpty &&
               (result.device.platformName.contains('SENTRY') ||
-               result.device.platformName.contains('ESP32'))) {
-            
+                  result.device.platformName.contains('ESP32'))) {
             if (!devices.any((d) => d.remoteId == result.device.remoteId)) {
               devices.add(result.device);
             }
@@ -109,7 +123,6 @@ class BluetoothService extends GetxService {
       Future.delayed(timeout, () {
         stopScan();
       });
-
     } catch (e) {
       Helpers.showError('Gagal memindai perangkat: $e');
       isScanning.value = false;
@@ -119,7 +132,7 @@ class BluetoothService extends GetxService {
   // Stop scanning
   Future<void> stopScan() async {
     try {
-      await FlutterBluePlus.stopScan();
+      await fbp.FlutterBluePlus.stopScan();
       isScanning.value = false;
     } catch (e) {
       print('Error stopping scan: $e');
@@ -127,7 +140,7 @@ class BluetoothService extends GetxService {
   }
 
   // Connect to device
-  Future<bool> connectToDevice(BluetoothDevice device) async {
+  Future<bool> connectToDevice(fbp.BluetoothDevice device) async {
     try {
       isConnecting.value = true;
 
@@ -158,7 +171,6 @@ class BluetoothService extends GetxService {
       });
 
       return true;
-
     } catch (e) {
       Helpers.showError('Gagal terhubung ke perangkat: $e');
       return false;
@@ -174,16 +186,17 @@ class BluetoothService extends GetxService {
 
       for (fbp.BluetoothService service in services) {
         // Find write characteristic
-        for (fbp.BluetoothCharacteristic characteristic in service.characteristics) {
+        for (fbp.BluetoothCharacteristic characteristic
+            in service.characteristics) {
           if (characteristic.properties.write) {
             _writeCharacteristic = characteristic;
           }
-          
+
           // Find notify characteristic
           if (characteristic.properties.notify) {
             _notifyCharacteristic = characteristic;
             await characteristic.setNotifyValue(true);
-            
+
             // Listen to notifications from ESP32
             characteristic.value.listen((value) {
               _handleNotification(value);
@@ -191,7 +204,6 @@ class BluetoothService extends GetxService {
           }
         }
       }
-
     } catch (e) {
       print('Error discovering services: $e');
     }
@@ -202,7 +214,7 @@ class BluetoothService extends GetxService {
     try {
       String data = String.fromCharCodes(value);
       print('Received from ESP32: $data');
-      
+
       // Parse sensor data
       if (data.contains('TEMP:') || data.contains('HUM:')) {
         // Trigger event untuk update sensor data
@@ -210,7 +222,6 @@ class BluetoothService extends GetxService {
           Get.find<SensorDataController>().updateFromBluetooth(data);
         }
       }
-      
     } catch (e) {
       print('Error handling notification: $e');
     }

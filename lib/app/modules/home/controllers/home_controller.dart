@@ -1,16 +1,14 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../../data/models/helmet_data_model.dart';
 import '../../../data/models/sensor_data_model.dart';
 import '../../../services/bluetooth_service.dart';
-import '../../../services/firebase_service.dart';
-import '../../../services/location_service.dart';
 import '../../../core/utils/helpers.dart';
-import '../../../routes/app_routes.dart';
+import '../../../routes/app_pages.dart';
 
 class HomeController extends GetxController {
   final BluetoothService _bluetoothService = Get.find();
-  final FirebaseService _firebaseService = Get.find();
-  final LocationService _locationService = Get.find();
 
   // Observables
   final Rx<HelmetDataModel?> helmetData = Rx<HelmetDataModel?>(null);
@@ -25,9 +23,76 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _checkBluetoothPermissions();
     _initializeData();
     _listenToBluetoothConnection();
     _startPeriodicDataFetch();
+  }
+
+  Future<void> _checkBluetoothPermissions() async {
+    // Delay check sedikit agar UI sudah render
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    try {
+      bool bluetoothScan = await Permission.bluetoothScan.isGranted;
+      bool bluetoothConnect = await Permission.bluetoothConnect.isGranted;
+      bool location = await Permission.location.isGranted;
+
+      if (!bluetoothScan || !bluetoothConnect || !location) {
+        Get.snackbar(
+          'Izin Bluetooth',
+          'Beberapa fitur memerlukan izin Bluetooth dan Lokasi',
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 4),
+          mainButton: TextButton(
+            onPressed: () {
+              Get.back(); // Close snackbar
+              _requestPermissions();
+            },
+            child: const Text(
+              'BERIKAN IZIN',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      print('[HomeController] Permission check error: $e');
+    }
+  }
+
+  Future<void> _requestPermissions() async {
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.bluetoothScan,
+      Permission.bluetoothConnect,
+      Permission.location,
+    ].request();
+
+    bool allGranted = statuses.values.every((status) => status.isGranted);
+
+    if (allGranted) {
+      Get.snackbar(
+        'Berhasil',
+        'Semua izin telah diberikan',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 2),
+      );
+
+      // Refresh bluetooth service
+      await _bluetoothService.requestPermissions();
+    } else {
+      Get.defaultDialog(
+        title: 'Izin Ditolak',
+        middleText:
+            'Aplikasi memerlukan izin Bluetooth dan Lokasi.\n\nBuka Pengaturan untuk memberikan izin.',
+        textConfirm: 'Buka Pengaturan',
+        textCancel: 'Batal',
+        onConfirm: () {
+          openAppSettings();
+          Get.back();
+        },
+      );
+    }
   }
 
   void _initializeData() {
@@ -98,7 +163,6 @@ class HomeController extends GetxController {
       if (!newData.isTemperatureNormal || !newData.isHumidityNormal) {
         _handleAbnormalSensorData(newData);
       }
-
     } catch (e) {
       print('Error updating sensor data: $e');
     }
@@ -107,7 +171,7 @@ class HomeController extends GetxController {
   // Handle crash detected
   void _handleCrashDetected(SensorDataModel data) {
     Helpers.showError('KECELAKAAN TERDETEKSI! Mengirim notifikasi darurat...');
-    
+
     // Create alert
     // Save to Firebase
     // Send emergency notifications

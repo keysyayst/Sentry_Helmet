@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import '../../../services/location_service.dart';
@@ -25,14 +26,14 @@ class RiderSafetyController extends GetxController {
   final RxDouble maxSpeed = 0.0.obs;
   final RxDouble totalDistance = 0.0.obs;
   final Rx<Duration> rideDuration = Duration.zero.obs;
-  
+
   // Ride tracking
   final Rx<RideHistoryModel?> currentRide = Rx<RideHistoryModel?>(null);
   final RxList<LocationData> routePoints = <LocationData>[].obs;
-  
+
   // Alerts
   final RxList<AlertModel> recentAlerts = <AlertModel>[].obs;
-  
+
   Timer? _trackingTimer;
   Timer? _durationTimer;
   DateTime? _rideStartTime;
@@ -47,13 +48,13 @@ class RiderSafetyController extends GetxController {
   void _initializeData() async {
     // Get current location
     await _getCurrentLocation();
-    
+
     // Listen to location updates
     ever(_locationService.currentPosition, (position) {
       if (position != null) {
         currentPosition.value = position;
         currentSpeed.value = position.speed * 3.6; // m/s to km/h
-        
+
         if (currentSpeed.value > maxSpeed.value) {
           maxSpeed.value = currentSpeed.value;
         }
@@ -83,7 +84,7 @@ class RiderSafetyController extends GetxController {
   void _checkSensorData() {
     // This would be called when receiving data from Bluetooth
     // For now, we'll create a placeholder
-    
+
     // Check for crash detection
     if (sensorData.value != null) {
       if (sensorData.value!.accelerometer.isCrash) {
@@ -94,12 +95,12 @@ class RiderSafetyController extends GetxController {
 
   Future<void> _handleCrashDetection() async {
     if (isCrashDetected.value) return; // Already handling
-    
+
     isCrashDetected.value = true;
-    
+
     // Stop tracking
     await stopTracking();
-    
+
     // Create alert
     final alert = AlertModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -134,7 +135,7 @@ class RiderSafetyController extends GetxController {
         child: AlertDialog(
           title: const Row(
             children: [
-              Icon(Icons.warning, color: AppColors.error, size: 32),
+              Icon(Icons.warning, color: Colors.red, size: 32),
               SizedBox(width: 12),
               Text('Kecelakaan Terdeteksi!'),
             ],
@@ -151,7 +152,7 @@ class RiderSafetyController extends GetxController {
               if (currentPosition.value != null)
                 Text(
                   'Lokasi: ${currentPosition.value!.latitude.toStringAsFixed(6)}, ${currentPosition.value!.longitude.toStringAsFixed(6)}',
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
             ],
           ),
@@ -169,9 +170,7 @@ class RiderSafetyController extends GetxController {
                 Get.back();
                 _sendEmergencyAlert();
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.error,
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               child: const Text('Kirim Notifikasi Sekarang'),
             ),
           ],
@@ -190,13 +189,13 @@ class RiderSafetyController extends GetxController {
 
   Future<void> _sendEmergencyAlert() async {
     Helpers.showLoadingDialog('Mengirim notifikasi darurat...');
-    
+
     // Simulate sending to emergency contacts
     await Future.delayed(const Duration(seconds: 2));
-    
+
     Helpers.hideLoadingDialog();
     Helpers.showSuccess('Notifikasi darurat telah dikirim ke kontak darurat');
-    
+
     isCrashDetected.value = false;
     if (Get.isDialogOpen ?? false) {
       Get.back();
@@ -217,13 +216,15 @@ class RiderSafetyController extends GetxController {
 
     // Get starting position
     await _getCurrentLocation();
-    
+
     if (currentPosition.value != null) {
-      routePoints.add(LocationData(
-        latitude: currentPosition.value!.latitude,
-        longitude: currentPosition.value!.longitude,
-        timestamp: DateTime.now(),
-      ));
+      routePoints.add(
+        LocationData(
+          latitude: currentPosition.value!.latitude,
+          longitude: currentPosition.value!.longitude,
+          timestamp: DateTime.now(),
+        ),
+      );
 
       // Create ride history
       currentRide.value = RideHistoryModel(
@@ -302,7 +303,7 @@ class RiderSafetyController extends GetxController {
 
       // Save to Firebase
       await _firebaseService.saveRideHistory(finalRide);
-      
+
       Helpers.showSuccess('Pelacakan dihentikan dan disimpan');
     }
 
@@ -322,7 +323,8 @@ class RiderSafetyController extends GetxController {
   // Open location in maps
   void openInMaps() async {
     if (currentPosition.value != null) {
-      final url = 'https://www.google.com/maps/search/?api=1&query=${currentPosition.value!.latitude},${currentPosition.value!.longitude}';
+      final url =
+          'https://www.google.com/maps/search/?api=1&query=${currentPosition.value!.latitude},${currentPosition.value!.longitude}';
       Helpers.showInfo('Membuka Google Maps...');
       // In real app, use url_launcher package
       print('Opening: $url');
@@ -345,7 +347,11 @@ class RiderSafetyController extends GetxController {
       sensorData.value = SensorDataModel(
         temperature: 25.0,
         humidity: 60.0,
-        accelerometer: AccelerometerData(x: 5.0, y: 5.0, z: 5.0), // High G-force
+        accelerometer: AccelerometerData(
+          x: 5.0,
+          y: 5.0,
+          z: 5.0,
+        ), // High G-force
         location: currentPosition.value != null
             ? LocationData(
                 latitude: currentPosition.value!.latitude,

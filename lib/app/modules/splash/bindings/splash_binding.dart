@@ -4,6 +4,10 @@ import '../controllers/splash_controller.dart';
 class SplashBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<SplashController>(() => SplashController());
+    print('[SPLASH BINDING] dependencies() called');
+    Get.put<SplashController>(SplashController());
+    print(
+      '[SPLASH BINDING] SplashController created: ${Get.isRegistered<SplashController>()}',
+    );
   }
 }

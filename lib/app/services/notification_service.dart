@@ -19,10 +19,10 @@ class NotificationService extends GetxService {
 
     const DarwinInitializationSettings iosSettings =
         DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        );
 
     const InitializationSettings settings = InitializationSettings(
       android: androidSettings,
@@ -38,19 +38,16 @@ class NotificationService extends GetxService {
     if (GetPlatform.isIOS) {
       await _notifications
           .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin>()
-          ?.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-          );
+            IOSFlutterLocalNotificationsPlugin
+          >()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
     }
   }
 
   // Handle notification tap
   void _onNotificationTapped(NotificationResponse response) {
     print('Notification tapped: ${response.payload}');
-    
+
     // Navigate based on payload
     if (response.payload != null) {
       // Handle navigation
@@ -67,13 +64,13 @@ class NotificationService extends GetxService {
   }) async {
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
-      'sentry_helmet_channel',
-      'Sentry Helmet Notifications',
-      channelDescription: 'Notifications from Sentry Helmet app',
-      importance: Importance.high,
-      priority: Priority.high,
-      showWhen: true,
-    );
+          'sentry_helmet_channel',
+          'Sentry Helmet Notifications',
+          channelDescription: 'Notifications from Sentry Helmet app',
+          importance: Importance.high,
+          priority: Priority.high,
+          showWhen: true,
+        );
 
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
       presentAlert: true,
@@ -104,18 +101,18 @@ class NotificationService extends GetxService {
     required String message,
     required String location,
   }) async {
-    const AndroidNotificationDetails androidDetails =
+    final AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
-      'emergency_channel',
-      'Emergency Alerts',
-      channelDescription: 'Critical emergency notifications',
-      importance: Importance.max,
-      priority: Priority.max,
-      showWhen: true,
-      playSound: true,
-      enableVibration: true,
-      vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
-    );
+          'emergency_channel',
+          'Emergency Alerts',
+          channelDescription: 'Critical emergency notifications',
+          importance: Importance.max,
+          priority: Priority.max,
+          showWhen: true,
+          playSound: true,
+          enableVibration: true,
+          vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
+        );
 
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
       presentAlert: true,
@@ -124,7 +121,7 @@ class NotificationService extends GetxService {
       interruptionLevel: InterruptionLevel.critical,
     );
 
-    const NotificationDetails details = NotificationDetails(
+    final NotificationDetails details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );

@@ -1,19 +1,20 @@
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart' as flutter_blue_plus;
 import 'package:get/get.dart';
-import '../../../services/bluetooth_service.dart';  // HelmetBluetoothService
+import '../../../services/bluetooth_service.dart';
 import '../../../core/utils/helpers.dart';
-import '../../../data/models/helmet_data_model.dart';
 
 class HelmetSecurityController extends GetxController {
-  final BluetoothService _bluetoothService = Get.find();  // ← GANTI
+  final BluetoothService _bluetoothService = Get.find();
 
   // Observables
-  final RxList<BluetoothDevice> availableDevices = <BluetoothDevice>[].obs;
+  final RxList<flutter_blue_plus.BluetoothDevice> availableDevices =
+      <flutter_blue_plus.BluetoothDevice>[].obs;
   final RxBool isScanning = false.obs;
   final RxBool isConnected = false.obs;
   final RxBool isHelmetLocked = false.obs;
   final RxBool isAlarmActive = false.obs;
-  final Rx<BluetoothDevice?> connectedDevice = Rx<BluetoothDevice?>(null);
+  final Rx<flutter_blue_plus.BluetoothDevice?> connectedDevice =
+      Rx<flutter_blue_plus.BluetoothDevice?>(null);
   final RxString lockStatus = 'Tidak Diketahui'.obs;
   final RxInt failedAttempts = 0.obs;
   final RxBool isLoading = false.obs;
@@ -25,7 +26,9 @@ class HelmetSecurityController extends GetxController {
   }
 
   void _initializeData() {
-    ever(_bluetoothService.devices, (List<BluetoothDevice> devices) {
+    ever(_bluetoothService.devices, (
+      List<flutter_blue_plus.BluetoothDevice> devices,
+    ) {
       availableDevices.value = devices;
     });
 
@@ -57,7 +60,7 @@ class HelmetSecurityController extends GetxController {
     await _bluetoothService.stopScan();
   }
 
-  Future<void> connectToDevice(BluetoothDevice device) async {
+  Future<void> connectToDevice(flutter_blue_plus.BluetoothDevice device) async {
     bool success = await _bluetoothService.connectToDevice(device);
     if (success) {
       await _getHelmetStatus();
@@ -164,7 +167,8 @@ class HelmetSecurityController extends GetxController {
   Future<void> emergencyUnlock() async {
     bool confirm = await Helpers.showConfirmDialog(
       title: 'Buka Kunci Darurat',
-      message: 'Fitur ini akan membuka kunci helm secara paksa. Gunakan hanya dalam keadaan darurat!',
+      message:
+          'Fitur ini akan membuka kunci helm secara paksa. Gunakan hanya dalam keadaan darurat!',
       confirmText: 'Ya, Buka Paksa',
       cancelText: 'Batal',
     );
@@ -178,19 +182,28 @@ class HelmetSecurityController extends GetxController {
   Future<void> simulateRFIDScan() async {
     Helpers.showInfo('Mendekatkan kartu RFID...');
     await Future.delayed(const Duration(seconds: 1));
-    
+
     bool success = DateTime.now().second % 2 == 0;
-    
+
     if (success) {
       await unlockHelmet();
     } else {
       failedAttempts.value++;
       Helpers.showError('Kartu RFID tidak dikenali');
-      
+
       if (failedAttempts.value >= 3) {
         await activateAlarm();
         Helpers.showWarning('Terlalu banyak percobaan gagal! Alarm diaktifkan');
       }
+    }
+  }
+
+  void toggleAlarm() {
+    isAlarmActive.value = !isAlarmActive.value;
+    if (isAlarmActive.value) {
+      activateAlarm();
+    } else {
+      deactivateAlarm();
     }
   }
 

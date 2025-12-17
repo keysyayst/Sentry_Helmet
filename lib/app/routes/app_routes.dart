@@ -10,6 +10,7 @@ abstract class Routes {
   static const SETTINGS = _Paths.SETTINGS;
   static const EMERGENCY_CONTACTS = _Paths.EMERGENCY_CONTACTS;
   static const HISTORY = _Paths.HISTORY;
+  static const BLE_CONNECT = _Paths.BLE_CONNECT;
 }
 
 abstract class _Paths {
@@ -21,4 +22,5 @@ abstract class _Paths {
   static const SETTINGS = '/settings';
   static const EMERGENCY_CONTACTS = '/emergency-contacts';
   static const HISTORY = '/history';
+  static const BLE_CONNECT = '/ble-connect';
 }

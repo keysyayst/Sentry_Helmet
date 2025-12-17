@@ -1,6 +1,5 @@
 import 'sensor_data_model.dart';
 
-
 class RideHistoryModel {
   final String id;
   final DateTime startTime;
@@ -46,8 +45,8 @@ class RideHistoryModel {
           : null,
       route: json['route'] != null
           ? (json['route'] as List)
-              .map((e) => LocationData.fromJson(e))
-              .toList()
+                .map((e) => LocationData.fromJson(e))
+                .toList()
           : [],
       avgSpeed: json['avgSpeed']?.toDouble(),
       maxSpeed: json['maxSpeed']?.toDouble(),
@@ -99,6 +98,37 @@ class RideHistoryModel {
       return '${(distance! * 1000).toStringAsFixed(0)} m';
     }
     return '${distance!.toStringAsFixed(2)} km';
+  }
+
+  // Copy with method
+  RideHistoryModel copyWith({
+    String? id,
+    DateTime? startTime,
+    DateTime? endTime,
+    LocationData? startLocation,
+    LocationData? endLocation,
+    double? distance,
+    Duration? duration,
+    List<LocationData>? route,
+    double? avgSpeed,
+    double? maxSpeed,
+    bool? hadIncident,
+    List<String>? incidentIds,
+  }) {
+    return RideHistoryModel(
+      id: id ?? this.id,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+      startLocation: startLocation ?? this.startLocation,
+      endLocation: endLocation ?? this.endLocation,
+      distance: distance ?? this.distance,
+      duration: duration ?? this.duration,
+      route: route ?? this.route,
+      avgSpeed: avgSpeed ?? this.avgSpeed,
+      maxSpeed: maxSpeed ?? this.maxSpeed,
+      hadIncident: hadIncident ?? this.hadIncident,
+      incidentIds: incidentIds ?? this.incidentIds,
+    );
   }
 
   @override

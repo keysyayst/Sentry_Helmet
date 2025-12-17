@@ -1,15 +1,14 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import '../../../core/utils/constants.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../services/bluetooth_service.dart';
-import '../../../services/firebase_service.dart';
 import '../../../data/models/emergency_contact_model.dart';
 
 class SettingsController extends GetxController {
   final _storage = GetStorage();
   final BluetoothService _bluetoothService = Get.find();
-  final FirebaseService _firebaseService = Get.find();
 
   // Observables
   final RxString userName = ''.obs;
@@ -17,7 +16,8 @@ class SettingsController extends GetxController {
   final RxBool autoLock = true.obs;
   final RxBool notificationEnabled = true.obs;
   final RxBool darkMode = false.obs;
-  final RxList<EmergencyContactModel> emergencyContacts = <EmergencyContactModel>[].obs;
+  final RxList<EmergencyContactModel> emergencyContacts =
+      <EmergencyContactModel>[].obs;
 
   @override
   void onInit() {
@@ -30,8 +30,9 @@ class SettingsController extends GetxController {
     userName.value = _storage.read(AppConstants.keyUserName) ?? '';
     userPhone.value = _storage.read(AppConstants.keyUserPhone) ?? '';
     autoLock.value = _storage.read(AppConstants.keyAutoLock) ?? true;
-    notificationEnabled.value = _storage.read(AppConstants.keyNotificationEnabled) ?? true;
-    
+    notificationEnabled.value =
+        _storage.read(AppConstants.keyNotificationEnabled) ?? true;
+
     // Load emergency contacts
     final contactsJson = _storage.read(AppConstants.keyEmergencyContacts);
     if (contactsJson != null && contactsJson is List) {
@@ -54,7 +55,7 @@ class SettingsController extends GetxController {
       Helpers.showError('Nomor telepon tidak valid');
       return;
     }
-    
+
     userPhone.value = phone;
     await _storage.write(AppConstants.keyUserPhone, phone);
     Helpers.showSuccess('Nomor telepon berhasil disimpan');
@@ -92,9 +93,12 @@ class SettingsController extends GetxController {
   }
 
   // Edit emergency contact
-  Future<void> editEmergencyContact(int index, EmergencyContactModel contact) async {
+  Future<void> editEmergencyContact(
+    int index,
+    EmergencyContactModel contact,
+  ) async {
     if (index < 0 || index >= emergencyContacts.length) return;
-    
+
     if (!contact.isValidPhoneNumber) {
       Helpers.showError('Nomor telepon tidak valid');
       return;
@@ -168,10 +172,7 @@ class SettingsController extends GetxController {
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Batal'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('Batal')),
           ElevatedButton(
             onPressed: () {
               if (nameController.text.isEmpty ||
@@ -228,10 +229,7 @@ class SettingsController extends GetxController {
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Batal'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('Batal')),
           ElevatedButton(
             onPressed: () {
               saveUserName(nameController.text);
@@ -249,7 +247,8 @@ class SettingsController extends GetxController {
   Future<void> clearAllData() async {
     bool confirm = await Helpers.showConfirmDialog(
       title: 'Hapus Semua Data',
-      message: 'Apakah Anda yakin ingin menghapus semua data aplikasi? Tindakan ini tidak dapat dibatalkan.',
+      message:
+          'Apakah Anda yakin ingin menghapus semua data aplikasi? Tindakan ini tidak dapat dibatalkan.',
       confirmText: 'Hapus',
       cancelText: 'Batal',
     );
@@ -279,10 +278,7 @@ class SettingsController extends GetxController {
           children: [
             Text(
               'SENTRY HELMET',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8),
             Text('Versi: 1.0.0'),
@@ -292,19 +288,13 @@ class SettingsController extends GetxController {
               style: TextStyle(fontSize: 14),
             ),
             SizedBox(height: 16),
-            Text(
-              'Dibuat oleh:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+            Text('Dibuat oleh:', style: TextStyle(fontWeight: FontWeight.bold)),
             Text('Keysya Yesanti Safa\'at (202310370311363)'),
             Text('Irfan Deny (202310370311377)'),
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Tutup'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('Tutup')),
         ],
       ),
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/home_controller.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../routes/app_pages.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({Key? key}) : super(key: key);
@@ -30,18 +31,18 @@ class HomeView extends GetView<HomeController> {
               // Connection Status Card
               _buildConnectionCard(),
               const SizedBox(height: 16),
-              
+
               // Helmet Lock Control
               _buildLockCard(),
               const SizedBox(height: 16),
-              
+
               // Sensor Data Section
               Text(
                 'Data Sensor',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 12),
-              
+
               // Temperature & Humidity
               Row(
                 children: [
@@ -51,14 +52,11 @@ class HomeView extends GetView<HomeController> {
                 ],
               ),
               const SizedBox(height: 24),
-              
+
               // Quick Actions
-              Text(
-                'Menu Utama',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
+              Text('Menu Utama', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 12),
-              
+
               _buildQuickActionButton(
                 title: 'Keamanan Helm',
                 subtitle: 'Kontrol kunci & alarm',
@@ -67,13 +65,22 @@ class HomeView extends GetView<HomeController> {
                 onTap: controller.goToHelmetSecurity,
               ),
               const SizedBox(height: 12),
-              
+
               _buildQuickActionButton(
                 title: 'Keselamatan Pengendara',
                 subtitle: 'GPS tracking & deteksi kecelakaan',
                 icon: Icons.health_and_safety,
                 color: AppColors.success,
                 onTap: controller.goToRiderSafety,
+              ),
+              const SizedBox(height: 12),
+
+              _buildQuickActionButton(
+                title: 'BLE Connect',
+                subtitle: 'Kontrol ESP32 via Bluetooth',
+                icon: Icons.bluetooth,
+                color: Colors.blue,
+                onTap: () => Get.toNamed(Routes.BLE_CONNECT),
               ),
             ],
           ),
@@ -83,103 +90,109 @@ class HomeView extends GetView<HomeController> {
   }
 
   Widget _buildConnectionCard() {
-    return Obx(() => Card(
-      child: ListTile(
-        leading: Icon(
-          Icons.bluetooth,
-          color: controller.connectionStatus.value == 'Terhubung'
-              ? AppColors.success
-              : AppColors.error,
-          size: 32,
+    return Obx(
+      () => Card(
+        child: ListTile(
+          leading: Icon(
+            Icons.bluetooth,
+            color: controller.connectionStatus.value == 'Terhubung'
+                ? AppColors.success
+                : AppColors.error,
+            size: 32,
+          ),
+          title: const Text('Status Koneksi'),
+          subtitle: Text(controller.connectionStatus.value),
+          trailing: controller.connectionStatus.value == 'Terputus'
+              ? ElevatedButton(
+                  onPressed: controller.connectToBluetooth,
+                  child: const Text('Hubungkan'),
+                )
+              : const Icon(Icons.check_circle, color: AppColors.success),
         ),
-        title: const Text('Status Koneksi'),
-        subtitle: Text(controller.connectionStatus.value),
-        trailing: controller.connectionStatus.value == 'Terputus'
-            ? ElevatedButton(
-                onPressed: controller.connectToBluetooth,
-                child: const Text('Hubungkan'),
-              )
-            : const Icon(Icons.check_circle, color: AppColors.success),
       ),
-    ));
+    );
   }
 
   Widget _buildLockCard() {
-    return Obx(() => Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Icon(
-              controller.isHelmetLocked.value ? Icons.lock : Icons.lock_open,
-              size: 64,
-              color: controller.isHelmetLocked.value
-                  ? AppColors.locked
-                  : AppColors.unlocked,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              controller.isHelmetLocked.value ? 'Helm Terkunci' : 'Helm Terbuka',
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+    return Obx(
+      () => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Icon(
+                controller.isHelmetLocked.value ? Icons.lock : Icons.lock_open,
+                size: 64,
+                color: controller.isHelmetLocked.value
+                    ? AppColors.locked
+                    : AppColors.unlocked,
               ),
-            ),
-            const SizedBox(height: 16),
-            
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: controller.isLoading.value
-                        ? null
-                        : controller.toggleLock,
-                    icon: Icon(
-                      controller.isHelmetLocked.value
-                          ? Icons.lock_open
-                          : Icons.lock,
-                    ),
-                    label: Text(
-                      controller.isHelmetLocked.value ? 'Buka' : 'Kunci',
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      backgroundColor: controller.isHelmetLocked.value
-                          ? AppColors.success
-                          : AppColors.error,
+              const SizedBox(height: 12),
+              Text(
+                controller.isHelmetLocked.value
+                    ? 'Helm Terkunci'
+                    : 'Helm Terbuka',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: controller.isLoading.value
+                          ? null
+                          : controller.toggleLock,
+                      icon: Icon(
+                        controller.isHelmetLocked.value
+                            ? Icons.lock_open
+                            : Icons.lock,
+                      ),
+                      label: Text(
+                        controller.isHelmetLocked.value ? 'Buka' : 'Kunci',
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        backgroundColor: controller.isHelmetLocked.value
+                            ? AppColors.success
+                            : AppColors.error,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: controller.toggleAlarm,
-                    icon: Icon(
-                      controller.isAlarmActive.value
-                          ? Icons.notifications_off
-                          : Icons.notifications_active,
-                    ),
-                    label: Text(
-                      controller.isAlarmActive.value ? 'Matikan' : 'Alarm',
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: controller.toggleAlarm,
+                      icon: Icon(
+                        controller.isAlarmActive.value
+                            ? Icons.notifications_off
+                            : Icons.notifications_active,
+                      ),
+                      label: Text(
+                        controller.isAlarmActive.value ? 'Matikan' : 'Alarm',
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
-    ));
+    );
   }
 
   Widget _buildTemperatureCard() {
     return Obx(() {
       final temp = controller.temperature.value;
       final isNormal = temp >= 0 && temp <= 45;
-      
+
       return Card(
         color: isNormal ? null : AppColors.warning.withOpacity(0.1),
         child: Padding(
@@ -203,10 +216,7 @@ class HomeView extends GetView<HomeController> {
               if (!isNormal)
                 const Text(
                   'Abnormal',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.warning,
-                  ),
+                  style: TextStyle(fontSize: 12, color: AppColors.warning),
                 ),
             ],
           ),
@@ -219,7 +229,7 @@ class HomeView extends GetView<HomeController> {
     return Obx(() {
       final hum = controller.humidity.value;
       final isNormal = hum >= 20 && hum <= 90;
-      
+
       return Card(
         color: isNormal ? null : AppColors.warning.withOpacity(0.1),
         child: Padding(
@@ -243,10 +253,7 @@ class HomeView extends GetView<HomeController> {
               if (!isNormal)
                 const Text(
                   'Abnormal',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.warning,
-                  ),
+                  style: TextStyle(fontSize: 12, color: AppColors.warning),
                 ),
             ],
           ),

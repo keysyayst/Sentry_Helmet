@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/settings_controller.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/constants.dart';
+import '../../../data/models/emergency_contact_model.dart';
 
 class SettingsView extends GetView<SettingsController> {
   const SettingsView({Key? key}) : super(key: key);
@@ -9,9 +11,7 @@ class SettingsView extends GetView<SettingsController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pengaturan'),
-      ),
+      appBar: AppBar(title: const Text('Pengaturan')),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 8),
         children: [
@@ -19,25 +19,29 @@ class SettingsView extends GetView<SettingsController> {
           _buildSectionHeader('Profil Pengguna'),
           Obx(() => _buildProfileTile()),
           const Divider(),
-          
+
           // Device Settings
           _buildSectionHeader('Pengaturan Perangkat'),
-          Obx(() => _buildSwitchTile(
-            title: 'Kunci Otomatis',
-            subtitle: 'Kunci helm otomatis saat terputus',
-            icon: Icons.lock_clock,
-            value: controller.autoLock.value,
-            onChanged: controller.toggleAutoLock,
-          )),
-          Obx(() => _buildSwitchTile(
-            title: 'Notifikasi',
-            subtitle: 'Terima notifikasi keamanan dan peringatan',
-            icon: Icons.notifications,
-            value: controller.notificationEnabled.value,
-            onChanged: controller.toggleNotification,
-          )),
+          Obx(
+            () => _buildSwitchTile(
+              title: 'Kunci Otomatis',
+              subtitle: 'Kunci helm otomatis saat terputus',
+              icon: Icons.lock_clock,
+              value: controller.autoLock.value,
+              onChanged: controller.toggleAutoLock,
+            ),
+          ),
+          Obx(
+            () => _buildSwitchTile(
+              title: 'Notifikasi',
+              subtitle: 'Terima notifikasi keamanan dan peringatan',
+              icon: Icons.notifications,
+              value: controller.notificationEnabled.value,
+              onChanged: controller.toggleNotification,
+            ),
+          ),
           const Divider(),
-          
+
           // Emergency Contacts
           _buildSectionHeader('Kontak Darurat'),
           Obx(() {
@@ -45,14 +49,16 @@ class SettingsView extends GetView<SettingsController> {
               return ListTile(
                 leading: const Icon(Icons.contact_emergency),
                 title: const Text('Belum ada kontak darurat'),
-                subtitle: const Text('Tambahkan kontak untuk notifikasi darurat'),
+                subtitle: const Text(
+                  'Tambahkan kontak untuk notifikasi darurat',
+                ),
                 trailing: IconButton(
                   icon: const Icon(Icons.add_circle, color: AppColors.primary),
                   onPressed: controller.showAddContactDialog,
                 ),
               );
             }
-            
+
             return Column(
               children: [
                 ...controller.emergencyContacts.asMap().entries.map((entry) {
@@ -72,18 +78,20 @@ class SettingsView extends GetView<SettingsController> {
             );
           }),
           const Divider(),
-          
+
           // Appearance
           _buildSectionHeader('Tampilan'),
-          Obx(() => _buildSwitchTile(
-            title: 'Mode Gelap',
-            subtitle: 'Gunakan tema gelap',
-            icon: Icons.dark_mode,
-            value: controller.darkMode.value,
-            onChanged: controller.toggleDarkMode,
-          )),
+          Obx(
+            () => _buildSwitchTile(
+              title: 'Mode Gelap',
+              subtitle: 'Gunakan tema gelap',
+              icon: Icons.dark_mode,
+              value: controller.darkMode.value,
+              onChanged: controller.toggleDarkMode,
+            ),
+          ),
           const Divider(),
-          
+
           // About & Help
           _buildSectionHeader('Tentang'),
           _buildListTile(
@@ -99,7 +107,7 @@ class SettingsView extends GetView<SettingsController> {
             },
           ),
           const Divider(),
-          
+
           // Danger Zone
           _buildSectionHeader('Zona Bahaya', color: AppColors.error),
           _buildListTile(
@@ -115,7 +123,7 @@ class SettingsView extends GetView<SettingsController> {
             onTap: controller.clearAllData,
           ),
           const SizedBox(height: 16),
-          
+
           // Version
           Center(
             child: Text(
@@ -204,10 +212,7 @@ class SettingsView extends GetView<SettingsController> {
   }) {
     return ListTile(
       leading: Icon(icon, color: titleColor),
-      title: Text(
-        title,
-        style: TextStyle(color: titleColor),
-      ),
+      title: Text(title, style: TextStyle(color: titleColor)),
       subtitle: subtitle != null ? Text(subtitle) : null,
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
       onTap: onTap,

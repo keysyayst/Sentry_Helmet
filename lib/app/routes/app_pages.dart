@@ -9,7 +9,10 @@ import '../modules/rider_safety/bindings/rider_safety_binding.dart';
 import '../modules/rider_safety/views/rider_safety_view.dart';
 import '../modules/settings/bindings/settings_binding.dart';
 import '../modules/settings/views/settings_view.dart';
-import '../routes/app_routes.dart';  
+import '../modules/ble_connect/bindings/ble_connect_binding.dart';
+import '../modules/ble_connect/views/ble_connect_page.dart';
+
+part 'app_routes.dart';
 
 class AppPages {
   static const INITIAL = Routes.SPLASH;
@@ -43,6 +46,12 @@ class AppPages {
       name: Routes.SETTINGS,
       page: () => const SettingsView(),
       binding: SettingsBinding(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: Routes.BLE_CONNECT,
+      page: () => const BleConnectPage(),
+      binding: BleConnectBinding(),
       transition: Transition.rightToLeft,
     ),
   ];
